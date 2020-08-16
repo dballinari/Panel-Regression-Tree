@@ -17,12 +17,20 @@ keyword, time range and region can be obtained by running the `GoogleTrendsScrpa
 method. 
 
 ```R
-soruce("panel_regression_tree.R)
+soruce("panel_regression_tree.R")
 
+# Fit the tree model
 fitted <- build_tree(data = iris, formula = "Sepal.Length ~ Sepal.Width + Petal.Length", split_variables = c("Sepal.Width", "Petal.Length", "Petal.Width"), max_depth = 4, id = "Species", min_obs = 5, min_ids = 3)
+
+# Print the tree
+print_tree(tree = fitted)
+
+# Prune the tree and print it
+pruned <- prune_tree(tree = fitted)
+print_tree(tree = fitted)
+
+# Make predictions
+predict_tree(tree = pruned, newdata = iris)
 ```
 
-```R
-data <- tibble(a = 1:5, b = 6:10)
-data %>% export_data_to_latex(path="data_for_latex.tex")
-```
+
