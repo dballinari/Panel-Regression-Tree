@@ -22,3 +22,8 @@ soruce("panel_regression_tree.R)
 fitted <- build_tree(data = iris, formula = "Sepal.Length ~ Sepal.Width + Petal.Length", 
 split_variables = c("Sepal.Width", "Petal.Length", "Petal.Width"), max_depth = 4, id = "Species", min_obs = 5, min_ids = 3)
 ```
+
+```R
+data <- tibble(a = 1:5, b = 6:10)
+data %>% export_data_to_latex(path="data_for_latex.tex")
+```
