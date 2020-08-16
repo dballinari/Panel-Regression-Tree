@@ -19,8 +19,7 @@ method.
 ```R
 soruce("panel_regression_tree.R)
 
-fitted <- build_tree(data = iris, formula = "Sepal.Length ~ Sepal.Width + Petal.Length", 
-split_variables = c("Sepal.Width", "Petal.Length", "Petal.Width"), max_depth = 4, id = "Species", min_obs = 5, min_ids = 3)
+fitted <- build_tree(data = iris, formula = "Sepal.Length ~ Sepal.Width + Petal.Length", split_variables = c("Sepal.Width", "Petal.Length", "Petal.Width"), max_depth = 4, id = "Species", min_obs = 5, min_ids = 3)
 ```
 
 ```R
