@@ -1,4 +1,4 @@
-# Panel regression decision tree
+# Panel regression tree
 ## Introduction
 The code implements a decision tree with a fixed-effect panel regression model in each leaf. This 
 approach extends the classical regression tree to panel structured data and allows to fit more 
@@ -10,11 +10,9 @@ least one observation in each node. The minimum number of observations for each 
 through the input `min_ids`.
 
 ## Usage
-First, a `GoogleTrendsScraper` object needs to be initialized with (optional) parameters, such as
-the `sleep` time used to when long time windows are scraped, the `headless` option which defines
-whether the browser opened by Selenium is visible. In a second step, the trends for a specific 
-keyword, time range and region can be obtained by running the `GoogleTrendsScrpaer.get_trends`
-method. 
+The main function is `build_tree` which constructs and fits the fixed effect panel model. The user has to define a regression function `formula`, 
+a vector of variables `split_variables` used for splitting the data, the name of the panel identifier `id`, the maximal depth of the tree `max_depth`, 
+the minimal number of observations in each leaf `min_obs` and the minimal number of observations for each "individual" required in each leaf `min_ids`.
 
 ```R
 soruce("panel_regression_tree.R")
@@ -32,5 +30,4 @@ print_tree(tree = fitted)
 # Make predictions
 predict_tree(tree = pruned, newdata = iris)
 ```
-
 
