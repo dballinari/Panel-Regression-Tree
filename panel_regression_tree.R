@@ -1,6 +1,8 @@
 # Title: R implementation of a fixed effects regression tree model
 # Date: 27.07.2020
 # Author: Daniele Ballinari
+# R version 4.0.1 (2020-06-06)
+
 
 library(fixest)
 
@@ -11,9 +13,9 @@ model_loss <- function(data, formula, id) {
   
   sse <- sum(residuals(model)^2)
   
-  if (any(coefficients(model)<0) | sum(coefficients(model)) >= 1 ) {
-    sse <- Inf
-  }
+  # if (any(coefficients(model)<0) | sum(coefficients(model)) >= 1 ) {
+  #   sse <- Inf
+  # }
   
   return(sse)
 }
@@ -141,7 +143,7 @@ split <- function(node, formula, split_variables, id, num_ids,
 build_tree <- function(data, formula, split_variables, id, max_depth, min_obs, min_ids = 1) {
   # Check that data and formula are in the correct format
   data <- as.data.frame(data)
-  formula <- as.formula(formula)
+  formula <- as.formula(paste(formula, id, sep="|"))
   # Make sure that the variable to be predicted is in the first column
   base_loss <- model_loss(data, formula, id)
   # Number of unique ids
