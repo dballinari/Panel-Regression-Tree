@@ -16,11 +16,9 @@ whether the browser opened by Selenium is visible. In a second step, the trends 
 keyword, time range and region can be obtained by running the `GoogleTrendsScrpaer.get_trends`
 method. 
 
-```python
-from Code.GoogleTrendsScraper import GoogleTrendsScraper
+```R
+soruce("panel_regression_tree.R)
 
-gts = GoogleTrendsScraper(sleep=2, path_driver='path/to/driver.exe', headless=True)
-data = gts.get_trends('foo', '2018-01-01', '2019-03-31', 'US')
-
-del gts
+fitted <- build_tree(data = iris, formula = "Sepal.Length ~ Sepal.Width + Petal.Length", 
+split_variables = c("Sepal.Width", "Petal.Length", "Petal.Width"), max_depth = 4, id = "Species", min_obs = 5, min_ids = 3)
 ```
