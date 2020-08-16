@@ -3,8 +3,10 @@
 # Author: Daniele Ballinari
 # R version 4.0.1 (2020-06-06)
 
+if (!require("fixest")) {
+  install.packages("fixest")
+}
 
-library(fixest)
 
 # Evaluate the loss of the model
 model_loss <- function(data, formula, id) {
@@ -12,10 +14,6 @@ model_loss <- function(data, formula, id) {
   model <- feols(fml=formula, data = data)
   
   sse <- sum(residuals(model)^2)
-  
-  # if (any(coefficients(model)<0) | sum(coefficients(model)) >= 1 ) {
-  #   sse <- Inf
-  # }
   
   return(sse)
 }
