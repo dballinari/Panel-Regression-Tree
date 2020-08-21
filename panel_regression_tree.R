@@ -188,6 +188,46 @@ get_tree_loss <- function(tree, loss=0) {
   return(loss)
 }
 
+# Function that returns the reduction in loss achieved by each split
+get_variable_importance <- function(tree, loss=NA, variable_importance = list()) {
+  # If the input is the base tree, extract the first node to start the recursion
+  if (!is.null(tree[["base_loss"]])) {
+    # If there is no node, i.e. the tree as a depth of 0, we return the base loss
+    if (is.null(tree[["node"]])) {
+      return(NA)
+    }
+    loss <- tree[["base_loss"]]
+    tree <- tree[["node"]]
+  }
+  # Get the splitting variable name
+  variable <- tree$variable
+  # Compute loss after split:
+  loss_new <- tree$loss_left + tree$loss_right
+  # Compute the improvement in loss achieved by the splitting variable
+  improvement <- loss - loss_new
+  # If the splitting variable was already previously used, add the improvement
+  if (!is.null(variable_importance[[variable]])) {
+    improvement <- variable_importance[[variable]] + improvement
+  }
+  # Save the improvement
+  variable_importance[[variable]] <- improvement
+  
+  # Handle the left child
+  if (!is.null(tree[["left"]])) {
+    variable_importance <- get_variable_importance(tree = tree[["left"]], 
+                                                   loss = tree$loss_left, 
+                                                   variable_importance = variable_importance)
+  }
+  # Handle the right child
+  if (!is.null(tree[["right"]])) {
+    variable_importance <- get_variable_importance(tree = tree[["right"]], 
+                                                   loss = tree$loss_right, 
+                                                   variable_importance = variable_importance)
+  }
+  
+  return(variable_importance)
+}
+
 # Function that returns the number of internal nodes in the tree
 get_number_internal_nodes <- function(tree, num_internal=1) {
   # If the input is the base tree, extract the first node to start the recursion
