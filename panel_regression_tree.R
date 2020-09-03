@@ -5,6 +5,11 @@
 
 if (!require("fixest")) {
   install.packages("fixest")
+  require("fixest")
+}
+
+if (!require("tdigest")) {
+  install.packages("tdigest")
 }
 
 
@@ -46,7 +51,7 @@ split_dataset <- function(data, variable, value, id, min_obs, min_ids) {
 }
 
 # Get the best split for a dataset 
-get_split <- function(data, formula, split_variables, id, min_obs, min_ids, mesh = 8) {
+get_split <- function(data, formula, split_variables, id, min_obs, min_ids, mesh = 8, mtry=NULL) {
   
   best_loss <- best_loss_left <- best_loss_right <- Inf
   best_index <- NULL
@@ -55,6 +60,8 @@ get_split <- function(data, formula, split_variables, id, min_obs, min_ids, mesh
   best_groups <- NULL
   
   alphas <- (1:(mesh-1))/mesh
+  
+  if (!is.null(mtry)) split_variables <- split_variables[sample.int(length(split_variables), mtry)]
   
   for (variable in split_variables) {
     values <- quantile(tdigest::tdigest(data[,variable]), alphas)
@@ -93,7 +100,7 @@ to_terminal <- function(data, formula, id) {
 
 # Main recursive algorithm that sequentially splits the data in regions
 split <- function(node, formula, split_variables, id, num_ids,
-                  max_depth, min_obs, min_ids, depth, node_num=0) {
+                  max_depth, min_obs, min_ids, depth, node_num=0, mtry = NULL) {
   if (is.null(node[["groups"]])) {
     return(NULL)
   }
@@ -112,9 +119,9 @@ split <- function(node, formula, split_variables, id, num_ids,
   if (nrow(left) >= (min_obs*2) & 
       min(table(left[,id])) >= (2*min_ids) & 
       length(unique(left[,id])) == num_ids ) {
-    new_split <- split(get_split(left, formula, split_variables, id, min_obs, min_ids), 
+    new_split <- split(get_split(left, formula, split_variables, id, min_obs, min_ids, mtry = mtry), 
                        formula, split_variables, id, num_ids, max_depth, min_obs, min_ids, 
-                       depth+1, node_num+1)
+                       depth+1, node_num+1, mtry = mtry)
     if (is.null(new_split)) {
       return(list("node"=node, "node_num"=node_num))
     }
@@ -125,9 +132,9 @@ split <- function(node, formula, split_variables, id, num_ids,
   if (nrow(right) >= (min_obs*2) & 
       min(table(right[,id])) >= 2 & 
       length(unique(right[,id])) == num_ids) {
-    new_split <- split(get_split(right, formula, split_variables, id, min_obs, min_ids), 
+    new_split <- split(get_split(right, formula, split_variables, id, min_obs, min_ids, mtry = mtry), 
                        formula, split_variables, id, num_ids, max_depth, min_obs, min_ids,
-                       depth+1, node_num+1)
+                       depth+1, node_num+1, mtry = mtry)
     if (is.null(new_split)) {
       return(list("node"=node, "node_num"=node_num))
     }
@@ -138,7 +145,7 @@ split <- function(node, formula, split_variables, id, num_ids,
 }
 
 # Main function that starts the tree-growing procedure
-build_tree <- function(data, formula, split_variables, id, max_depth, min_obs, min_ids = 1) {
+build_tree <- function(data, formula, split_variables, id, max_depth, min_obs, min_ids = 1, mtry = NULL) {
   # Check that data and formula are in the correct format
   data <- as.data.frame(data)
   formula <- as.formula(paste(formula, id, sep="|"))
@@ -152,7 +159,7 @@ build_tree <- function(data, formula, split_variables, id, max_depth, min_obs, m
   } else {
     root <- split(get_split(data, formula, split_variables, id, min_obs, min_ids), 
                   formula, split_variables, id, num_ids, max_depth, min_obs, min_ids,
-                  1, 1) 
+                  1, 1, mtry = mtry) 
   }
   root$base_loss <- base_loss
   root$base_model <- to_terminal(data, formula, id)
@@ -295,6 +302,7 @@ get_complexity_cost <- function(tree, ic = "aic") {
 
 # Prune the tree to find the optimal tre based on a cost function
 prune_tree <- function(tree, ic = "aic") {
+  if (is.null(tree[["node"]])) return(tree)
   # Determine number of internal nodes:
   num_internal <- tree$node_num
   # Determine all combinations of nodes to drop:
@@ -316,7 +324,7 @@ print_tree <- function(tree, shift="", var_names = NULL) {
   if (!is.null(tree[["base_loss"]])) {
     # If there is no node, i.e. the tree as a depth of 0
     if (is.null(tree[["node"]])) {
-      cat(shift, "Root:\n", coefficients(tree$base_model))
+      cat(shift, "Root:\n", coefficients(tree$base_model), "\n")
       return()
     }
     var_names <- tree[["variables"]]
